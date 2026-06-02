@@ -17,8 +17,6 @@ const resultsBody = document.getElementById('results-body');
 const emptyMessage = document.getElementById('empty-message');
 
 // Menu elements
-const menuBtn = document.getElementById('menu-btn');
-const menu = document.getElementById('menu');
 const menuReset = document.getElementById('menu-reset');
 const menuDownload = document.getElementById('menu-download');
 const menuImport = document.getElementById('menu-import');
@@ -40,41 +38,19 @@ callsignInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleLookup();
 });
 
-// Menu helpers
-function showMenu() {
-  menu.classList.remove('hidden');
-  menu.style.display = 'block';
-}
-
-function hideMenu() {
-  hideMenu();
-  menu.style.display = 'none';
-}
-
 // Menu event listeners
-menuBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
-  if (menu.classList.contains('hidden')) {
-    showMenu();
-  } else {
-    hideMenu();
-  }
+menuReset.addEventListener('click', (e) => {
+  e.preventDefault();
+  handleReset();
 });
-
-document.addEventListener('click', () => {
-  hideMenu();
+menuDownload.addEventListener('click', (e) => {
+  e.preventDefault();
+  handleDownloadCSV();
 });
-
-menu.addEventListener('click', (e) => {
-  e.stopPropagation();
-});
-
-menuReset.addEventListener('click', handleReset);
-menuDownload.addEventListener('click', handleDownloadCSV);
 menuImport.addEventListener('change', handleImportCSV);
-menuAbout.addEventListener('click', () => {
+menuAbout.addEventListener('click', (e) => {
+  e.preventDefault();
   aboutModal.classList.remove('hidden');
-  hideMenu();
 });
 
 aboutClose.addEventListener('click', () => {
@@ -398,14 +374,12 @@ function handleReset() {
   renderTable();
   updateMapMarkers();
   showStatus('All data cleared', 'success');
-  hideMenu();
 }
 
 // Download CSV
 function handleDownloadCSV() {
   if (results.length === 0) {
     showStatus('No data to download', 'error');
-    hideMenu();
     return;
   }
 
@@ -430,7 +404,6 @@ function handleDownloadCSV() {
   URL.revokeObjectURL(link.href);
 
   showStatus(`Downloaded ${results.length} callsigns`, 'success');
-  hideMenu();
 }
 
 // Import CSV
@@ -504,7 +477,6 @@ function handleImportCSV(event) {
 
   reader.readAsText(file);
   event.target.value = ''; // Reset file input
-  hideMenu();
 }
 
 // Parse a CSV line handling quoted fields

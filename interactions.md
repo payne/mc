@@ -104,3 +104,37 @@
 3. Check Access Policy if public access is needed
 
 ---
+
+## Session: 2026-06-02
+
+### Request 6: Add Bootstrap for Hamburger Menu
+
+**Issue:** The custom hamburger menu in `menu-container` div was not rendering properly
+
+**Solution:** Added Bootstrap 5.3.3 and converted to standard Bootstrap navbar
+
+**Files Modified:**
+
+**`public/index.html`:**
+- Added Bootstrap 5.3.3 CSS from CDN
+- Added Bootstrap 5.3.3 JS bundle from CDN
+- Replaced custom `<header>` with Bootstrap `<nav class="navbar navbar-expand-lg navbar-dark bg-dark">`
+- Menu items converted to Bootstrap nav-links inside collapsible navbar
+- Hamburger uses Bootstrap's `navbar-toggler` with `navbar-toggler-icon`
+
+**`public/style.css`:**
+- Removed all custom hamburger menu styles (`.menu-container`, `.hamburger`, `.menu`, etc.)
+- Added minimal Bootstrap navbar customization to maintain color scheme
+
+**`public/app.js`:**
+- Removed references to old `menuBtn` and `menu` elements
+- Removed `showMenu()` and `hideMenu()` functions
+- Removed old click event listeners for manual menu toggling
+- Updated menu item click handlers to prevent default link behavior
+
+**Result:**
+- Navbar shows all menu items horizontally on larger screens (≥992px)
+- Collapses into working hamburger menu on smaller screens
+- Bootstrap handles all toggle functionality automatically
+
+---
