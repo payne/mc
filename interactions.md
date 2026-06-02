@@ -44,6 +44,40 @@
 
 ---
 
+### Request 4: Hamburger Menu
+
+**Change:** Add hamburger menu with Reset, Download CSV, Import CSV, and About options
+
+**Files Modified:**
+- `public/index.html` - Added hamburger button, dropdown menu, and About modal
+- `public/style.css` - Styled hamburger, menu dropdown, and modal
+- `public/app.js` - Added handlers for all menu actions
+
+**Features:**
+- **Reset**: Clears localStorage (cache + results) with confirmation
+- **Download CSV**: Exports table as CSV with columns: Callsign, Name, Address, Latitude, Longitude
+- **Import CSV**: Imports CSV file, auto-detects columns, skips duplicates
+- **About**: Modal showing GitHub URL https://github.com/payne/mc
+
+---
+
+### Request 3: Multiple Callsign Input
+
+**Change:** Convert single callsign input to textarea supporting multiple callsigns
+
+**Files Modified:**
+- `public/index.html` - Changed `<input>` to `<textarea>`
+- `public/style.css` - Updated styling for textarea
+- `public/app.js` - Added `parseCallsigns()` function, updated `handleLookup()` to process multiple callsigns sequentially with progress status
+
+**Features:**
+- Callsigns can be separated by spaces, commas, or newlines
+- Shows progress: "Looking up W1AW... (2/5)"
+- Summary: "3 found, 1 skipped (already in table), 1 failed"
+- Ctrl+Enter (Cmd+Enter on Mac) to submit
+
+---
+
 ### Request 2: Debug 404 on mc.more-radio.org
 
 **Issue:** Site returning 404

@@ -10,7 +10,32 @@
 <body>
   <header>
     <h1>Ham Radio Callsign Lookup</h1>
+    <div class="menu-container">
+      <button id="menu-btn" class="hamburger" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <nav id="menu" class="menu hidden">
+        <button id="menu-reset">Reset</button>
+        <button id="menu-download">Download CSV</button>
+        <label id="menu-import-label">
+          Import CSV
+          <input type="file" id="menu-import" accept=".csv">
+        </label>
+        <button id="menu-about">About</button>
+      </nav>
+    </div>
   </header>
+
+  <div id="about-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>About</h2>
+      <p>Ham Radio Callsign Lookup using QRZ.com API</p>
+      <p><a href="https://github.com/payne/mc" target="_blank">https://github.com/payne/mc</a></p>
+      <button id="about-close">Close</button>
+    </div>
+  </div>
 
   <main>
     <section class="input-section">

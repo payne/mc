@@ -16,6 +16,16 @@ const resultsTable = document.getElementById('results-table');
 const resultsBody = document.getElementById('results-body');
 const emptyMessage = document.getElementById('empty-message');
 
+// Menu elements
+const menuBtn = document.getElementById('menu-btn');
+const menu = document.getElementById('menu');
+const menuReset = document.getElementById('menu-reset');
+const menuDownload = document.getElementById('menu-download');
+const menuImport = document.getElementById('menu-import');
+const menuAbout = document.getElementById('menu-about');
+const aboutModal = document.getElementById('about-modal');
+const aboutClose = document.getElementById('about-close');
+
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   initMap();
@@ -28,6 +38,38 @@ document.addEventListener('DOMContentLoaded', () => {
 lookupBtn.addEventListener('click', handleLookup);
 callsignInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleLookup();
+});
+
+// Menu event listeners
+menuBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  menu.classList.toggle('hidden');
+});
+
+document.addEventListener('click', () => {
+  menu.classList.add('hidden');
+});
+
+menu.addEventListener('click', (e) => {
+  e.stopPropagation();
+});
+
+menuReset.addEventListener('click', handleReset);
+menuDownload.addEventListener('click', handleDownloadCSV);
+menuImport.addEventListener('change', handleImportCSV);
+menuAbout.addEventListener('click', () => {
+  aboutModal.classList.remove('hidden');
+  menu.classList.add('hidden');
+});
+
+aboutClose.addEventListener('click', () => {
+  aboutModal.classList.add('hidden');
+});
+
+aboutModal.addEventListener('click', (e) => {
+  if (e.target === aboutModal) {
+    aboutModal.classList.add('hidden');
+  }
 });
 
 // Initialize Leaflet Map
@@ -328,6 +370,162 @@ function updateMapMarkers() {
 function showStatus(message, type) {
   statusMessage.textContent = message;
   statusMessage.className = type || '';
+}
+
+// Reset - clear all data
+function handleReset() {
+  if (!confirm('This will clear all callsign data and cache. Continue?')) {
+    return;
+  }
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(RESULTS_KEY);
+  results = [];
+  renderTable();
+  updateMapMarkers();
+  showStatus('All data cleared', 'success');
+  menu.classList.add('hidden');
+}
+
+// Download CSV
+function handleDownloadCSV() {
+  if (results.length === 0) {
+    showStatus('No data to download', 'error');
+    menu.classList.add('hidden');
+    return;
+  }
+
+  const headers = ['Callsign', 'Name', 'Address', 'Latitude', 'Longitude'];
+  const rows = results.map(r => [
+    r.callsign,
+    r.name,
+    r.address,
+    r.lat || '',
+    r.lon || ''
+  ]);
+
+  const csvContent = [headers, ...rows]
+    .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `callsigns-${new Date().toISOString().split('T')[0]}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+
+  showStatus(`Downloaded ${results.length} callsigns`, 'success');
+  menu.classList.add('hidden');
+}
+
+// Import CSV
+function handleImportCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const text = e.target.result;
+      const lines = text.split('\n').filter(line => line.trim());
+
+      if (lines.length < 2) {
+        showStatus('CSV file is empty or invalid', 'error');
+        return;
+      }
+
+      // Parse header to find column indices
+      const header = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
+      const callsignIdx = header.findIndex(h => h === 'callsign' || h === 'call');
+      const nameIdx = header.findIndex(h => h === 'name');
+      const addressIdx = header.findIndex(h => h === 'address');
+      const latIdx = header.findIndex(h => h === 'latitude' || h === 'lat');
+      const lonIdx = header.findIndex(h => h === 'longitude' || h === 'lon' || h === 'lng');
+
+      if (callsignIdx === -1) {
+        showStatus('CSV must have a Callsign column', 'error');
+        return;
+      }
+
+      let importCount = 0;
+      let skipCount = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        const callsign = (values[callsignIdx] || '').toUpperCase().trim();
+
+        if (!callsign) continue;
+
+        // Skip if already exists
+        if (results.some(r => r.callsign === callsign)) {
+          skipCount++;
+          continue;
+        }
+
+        const entry = {
+          callsign: callsign,
+          name: nameIdx >= 0 ? (values[nameIdx] || '') : '',
+          address: addressIdx >= 0 ? (values[addressIdx] || '') : '',
+          lat: latIdx >= 0 && values[latIdx] ? parseFloat(values[latIdx]) : null,
+          lon: lonIdx >= 0 && values[lonIdx] ? parseFloat(values[lonIdx]) : null
+        };
+
+        results.unshift(entry);
+        importCount++;
+      }
+
+      saveResults();
+      renderTable();
+      updateMapMarkers();
+
+      const parts = [];
+      if (importCount > 0) parts.push(`${importCount} imported`);
+      if (skipCount > 0) parts.push(`${skipCount} skipped (duplicates)`);
+      showStatus(parts.join(', ') || 'No new callsigns imported', importCount > 0 ? 'success' : '');
+    } catch (err) {
+      showStatus('Failed to parse CSV: ' + err.message, 'error');
+    }
+  };
+
+  reader.readAsText(file);
+  event.target.value = ''; // Reset file input
+  menu.classList.add('hidden');
+}
+
+// Parse a CSV line handling quoted fields
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (inQuotes) {
+      if (char === '"') {
+        if (line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        current += char;
+      }
+    } else {
+      if (char === '"') {
+        inQuotes = true;
+      } else if (char === ',') {
+        result.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+  }
+
+  result.push(current);
+  return result;
 }
 
 // Escape HTML to prevent XSS
