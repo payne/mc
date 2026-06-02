@@ -1,0 +1,12 @@
+{
+  "name": "qrz-callsign-lookup",
+  "version": "1.0.0",
+  "description": "Ham radio callsign lookup using QRZ.com API",
+  "scripts": {
+    "dev": "wrangler pages dev public --binding QRZ_USERNAME=your_username QRZ_PASSWORD=your_password",
+    "deploy": "wrangler pages deploy public"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ham Radio Callsign Lookup</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+  <header>
+    <h1>Ham Radio Callsign Lookup</h1>
+  </header>
+
+  <main>
+    <section class="input-section">
+      <label for="callsign-input">Enter Callsign:</label>
+      <div class="input-row">
+        <input type="text" id="callsign-input" placeholder="e.g., W1AW" autocomplete="off">
+        <button id="lookup-btn">Lookup</button>
+      </div>
+      <p id="status-message"></p>
+    </section>
+
+    <div class="content-wrapper">
+      <section class="table-section">
+        <h2>Callsign Results</h2>
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>Callsign</th>
+              <th>Name</th>
+              <th>Address</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="results-body">
+          </tbody>
+        </table>
+        <p id="empty-message">No callsigns looked up yet. Enter a callsign above.</p>
+      </section>
+
+      <section class="map-section">
+        <h2>Locations</h2>
+        <div id="map"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
