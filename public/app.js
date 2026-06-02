@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Event Listeners
 lookupBtn.addEventListener('click', handleLookup);
-callsignInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') handleLookup();
+callsignInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleLookup();
 });
 
 // Initialize Leaflet Map
@@ -95,56 +95,87 @@ function cacheCallsign(callsign, data) {
   }
 }
 
+// Parse callsigns from input (comma or whitespace separated)
+function parseCallsigns(input) {
+  return input
+    .toUpperCase()
+    .split(/[\s,]+/)
+    .map(c => c.trim())
+    .filter(c => c.length > 0);
+}
+
 // Handle callsign lookup
 async function handleLookup() {
-  const callsign = callsignInput.value.trim().toUpperCase();
+  const callsigns = parseCallsigns(callsignInput.value);
 
-  if (!callsign) {
-    showStatus('Please enter a callsign', 'error');
+  if (callsigns.length === 0) {
+    showStatus('Please enter at least one callsign', 'error');
     return;
   }
 
-  // Check if already in results
-  if (results.some(r => r.callsign === callsign)) {
-    showStatus(`${callsign} is already in the table`, 'error');
-    return;
-  }
-
-  // Check cache first
-  const cached = getCachedCallsign(callsign);
-  if (cached) {
-    showStatus(`${callsign} loaded from cache`, 'success');
-    addResult(cached);
-    callsignInput.value = '';
-    return;
-  }
-
-  // Lookup via API
   lookupBtn.disabled = true;
-  showStatus(`Looking up ${callsign}...`, '');
 
-  try {
-    const response = await fetch('/api/lookup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ callsign })
-    });
+  let successCount = 0;
+  let skipCount = 0;
+  let errorCount = 0;
+  const errors = [];
 
-    const data = await response.json();
+  for (let i = 0; i < callsigns.length; i++) {
+    const callsign = callsigns[i];
+    showStatus(`Looking up ${callsign}... (${i + 1}/${callsigns.length})`, '');
 
-    if (!response.ok) {
-      throw new Error(data.error || 'Lookup failed');
+    // Check if already in results
+    if (results.some(r => r.callsign === callsign)) {
+      skipCount++;
+      continue;
     }
 
-    cacheCallsign(callsign, data);
-    addResult(data);
-    showStatus(`${callsign} found!`, 'success');
-    callsignInput.value = '';
-  } catch (error) {
-    showStatus(error.message, 'error');
-  } finally {
-    lookupBtn.disabled = false;
+    // Check cache first
+    const cached = getCachedCallsign(callsign);
+    if (cached) {
+      addResult(cached);
+      successCount++;
+      continue;
+    }
+
+    // Lookup via API
+    try {
+      const response = await fetch('/api/lookup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ callsign })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Lookup failed');
+      }
+
+      cacheCallsign(callsign, data);
+      addResult(data);
+      successCount++;
+    } catch (error) {
+      errorCount++;
+      errors.push(`${callsign}: ${error.message}`);
+    }
   }
+
+  // Build status message
+  const parts = [];
+  if (successCount > 0) parts.push(`${successCount} found`);
+  if (skipCount > 0) parts.push(`${skipCount} skipped (already in table)`);
+  if (errorCount > 0) parts.push(`${errorCount} failed`);
+
+  const statusType = errorCount > 0 ? (successCount > 0 ? '' : 'error') : 'success';
+  let message = parts.join(', ');
+  if (errors.length > 0 && errors.length <= 3) {
+    message += ': ' + errors.join('; ');
+  }
+
+  showStatus(message, statusType);
+  callsignInput.value = '';
+  lookupBtn.disabled = false;
 }
 
 // Add result to table (at top)
