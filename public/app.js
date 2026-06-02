@@ -7,6 +7,8 @@ const RESULTS_KEY = 'qrz_results';
 let results = [];
 let map = null;
 let markers = {};
+let sortColumn = null;
+let sortDirection = 'asc';
 
 // DOM Elements
 const callsignInput = document.getElementById('callsign-input');
@@ -36,6 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
 lookupBtn.addEventListener('click', handleLookup);
 callsignInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleLookup();
+});
+
+// Sortable table headers
+document.querySelectorAll('th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => sortResults(th.dataset.sort));
 });
 
 // Menu event listeners
@@ -227,6 +234,45 @@ function removeResult(callsign) {
   updateMapMarkers();
 }
 
+// Sort results by column
+function sortResults(column) {
+  if (sortColumn === column) {
+    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortColumn = column;
+    sortDirection = 'asc';
+  }
+  renderTable();
+}
+
+// Get sorted results
+function getSortedResults() {
+  if (!sortColumn) return results;
+
+  return [...results].sort((a, b) => {
+    let valA = a[sortColumn] || '';
+    let valB = b[sortColumn] || '';
+
+    if (typeof valA === 'string') valA = valA.toLowerCase();
+    if (typeof valB === 'string') valB = valB.toLowerCase();
+
+    if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+    if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
+
+// Update sort indicators in table headers
+function updateSortIndicators() {
+  const headers = resultsTable.querySelectorAll('th[data-sort]');
+  headers.forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.sort === sortColumn) {
+      th.classList.add(sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+    }
+  });
+}
+
 // Render the results table
 function renderTable() {
   resultsBody.innerHTML = '';
@@ -239,8 +285,10 @@ function renderTable() {
 
   resultsTable.classList.add('has-data');
   emptyMessage.classList.add('hidden');
+  updateSortIndicators();
 
-  results.forEach((result, index) => {
+  const sortedResults = getSortedResults();
+  sortedResults.forEach((result, index) => {
     const row = document.createElement('tr');
     row.dataset.callsign = result.callsign;
 

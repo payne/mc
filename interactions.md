@@ -138,3 +138,34 @@
 - Bootstrap handles all toggle functionality automatically
 
 ---
+
+### Request 7: Sortable Table Columns
+
+**Feature:** Make the results table sortable by clicking column headers
+
+**Files Modified:**
+
+**`public/index.html`:**
+- Added `data-sort` attributes and `sortable` class to Callsign, Name, and Address headers
+- Actions column remains non-sortable
+
+**`public/style.css`:**
+- Added `.sortable` class with cursor pointer and hover effect
+- Added up/down arrow indicators using CSS `::before` and `::after` pseudo-elements
+- Added `.sort-asc` and `.sort-desc` classes to highlight active sort direction
+
+**`public/app.js`:**
+- Added `sortColumn` and `sortDirection` state variables
+- Added `sortResults(column)` function to toggle sort on header click
+- Added `getSortedResults()` function to return sorted copy of results
+- Added `updateSortIndicators()` to update header CSS classes
+- Modified `renderTable()` to use sorted results for display
+- Added click event listeners to sortable headers
+
+**Behavior:**
+- Click a column header to sort ascending
+- Click again to sort descending
+- Click a different column to sort by that column (ascending)
+- Visual indicators show current sort column and direction
+
+---
