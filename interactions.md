@@ -44,6 +44,16 @@
 
 ---
 
+### Request 5: Fix Hamburger Menu Visibility
+
+**Issue:** Menu items were visible instead of being hidden behind hamburger icon
+
+**Fix:** Added inline `style="display:none"` and helper functions `showMenu()`/`hideMenu()` to ensure consistent visibility toggling
+
+**Commit:** b9d2c44
+
+---
+
 ### Request 4: Hamburger Menu
 
 **Change:** Add hamburger menu with Reset, Download CSV, Import CSV, and About options
