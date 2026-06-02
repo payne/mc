@@ -40,14 +40,29 @@ callsignInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleLookup();
 });
 
+// Menu helpers
+function showMenu() {
+  menu.classList.remove('hidden');
+  menu.style.display = 'block';
+}
+
+function hideMenu() {
+  hideMenu();
+  menu.style.display = 'none';
+}
+
 // Menu event listeners
 menuBtn.addEventListener('click', (e) => {
   e.stopPropagation();
-  menu.classList.toggle('hidden');
+  if (menu.classList.contains('hidden')) {
+    showMenu();
+  } else {
+    hideMenu();
+  }
 });
 
 document.addEventListener('click', () => {
-  menu.classList.add('hidden');
+  hideMenu();
 });
 
 menu.addEventListener('click', (e) => {
@@ -59,7 +74,7 @@ menuDownload.addEventListener('click', handleDownloadCSV);
 menuImport.addEventListener('change', handleImportCSV);
 menuAbout.addEventListener('click', () => {
   aboutModal.classList.remove('hidden');
-  menu.classList.add('hidden');
+  hideMenu();
 });
 
 aboutClose.addEventListener('click', () => {
@@ -383,14 +398,14 @@ function handleReset() {
   renderTable();
   updateMapMarkers();
   showStatus('All data cleared', 'success');
-  menu.classList.add('hidden');
+  hideMenu();
 }
 
 // Download CSV
 function handleDownloadCSV() {
   if (results.length === 0) {
     showStatus('No data to download', 'error');
-    menu.classList.add('hidden');
+    hideMenu();
     return;
   }
 
@@ -415,7 +430,7 @@ function handleDownloadCSV() {
   URL.revokeObjectURL(link.href);
 
   showStatus(`Downloaded ${results.length} callsigns`, 'success');
-  menu.classList.add('hidden');
+  hideMenu();
 }
 
 // Import CSV
@@ -489,7 +504,7 @@ function handleImportCSV(event) {
 
   reader.readAsText(file);
   event.target.value = ''; // Reset file input
-  menu.classList.add('hidden');
+  hideMenu();
 }
 
 // Parse a CSV line handling quoted fields
