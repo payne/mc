@@ -169,3 +169,31 @@
 - Visual indicators show current sort column and direction
 
 ---
+
+### Request 8: Filter Text Field
+
+**Feature:** Add a filter input above the table to filter results by callsign, name, or address
+
+**Files Modified:**
+
+**`public/index.html`:**
+- Added `.table-header` div containing the h2 and a new filter input
+- Filter input has placeholder "Filter..."
+
+**`public/style.css`:**
+- Added `.table-header` flexbox layout with space-between alignment
+- Added `#filter-input` styling with border, padding, and focus state
+
+**`public/app.js`:**
+- Added `filterText` state variable
+- Added `filterInput` DOM element reference
+- Added input event listener to update `filterText` and re-render table
+- Added `getFilteredResults()` function that filters by callsign, name, and address
+- Modified `getSortedResults()` to apply filtering before sorting
+
+**Behavior:**
+- Type in filter box to instantly filter table rows
+- Matches against callsign, name, and address columns (case-insensitive)
+- Filter and sort work together (filter first, then sort)
+
+---

@@ -9,6 +9,7 @@ let map = null;
 let markers = {};
 let sortColumn = null;
 let sortDirection = 'asc';
+let filterText = '';
 
 // DOM Elements
 const callsignInput = document.getElementById('callsign-input');
@@ -17,6 +18,7 @@ const statusMessage = document.getElementById('status-message');
 const resultsTable = document.getElementById('results-table');
 const resultsBody = document.getElementById('results-body');
 const emptyMessage = document.getElementById('empty-message');
+const filterInput = document.getElementById('filter-input');
 
 // Menu elements
 const menuReset = document.getElementById('menu-reset');
@@ -43,6 +45,12 @@ callsignInput.addEventListener('keydown', (e) => {
 // Sortable table headers
 document.querySelectorAll('th[data-sort]').forEach(th => {
   th.addEventListener('click', () => sortResults(th.dataset.sort));
+});
+
+// Filter input
+filterInput.addEventListener('input', (e) => {
+  filterText = e.target.value.toLowerCase();
+  renderTable();
 });
 
 // Menu event listeners
@@ -245,11 +253,26 @@ function sortResults(column) {
   renderTable();
 }
 
-// Get sorted results
-function getSortedResults() {
-  if (!sortColumn) return results;
+// Get filtered results
+function getFilteredResults() {
+  if (!filterText) return results;
 
-  return [...results].sort((a, b) => {
+  return results.filter(r => {
+    const callsign = (r.callsign || '').toLowerCase();
+    const name = (r.name || '').toLowerCase();
+    const address = (r.address || '').toLowerCase();
+    return callsign.includes(filterText) ||
+           name.includes(filterText) ||
+           address.includes(filterText);
+  });
+}
+
+// Get sorted results (applies to filtered results)
+function getSortedResults() {
+  const filtered = getFilteredResults();
+  if (!sortColumn) return filtered;
+
+  return [...filtered].sort((a, b) => {
     let valA = a[sortColumn] || '';
     let valB = b[sortColumn] || '';
 

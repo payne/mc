@@ -169,12 +169,36 @@ main {
   overflow-x: auto;
 }
 
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.table-header h2 {
+  margin: 0;
+}
+
 .table-section h2,
 .map-section h2 {
   font-size: 1.1rem;
   font-weight: 500;
   color: #333;
-  margin-bottom: 1rem;
+}
+
+#filter-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  width: 200px;
+}
+
+#filter-input:focus {
+  outline: none;
+  border-color: #3498db;
 }
 
 #results-table {
