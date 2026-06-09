@@ -241,7 +241,7 @@ async function handleLookup() {
 }
 
 // Handle manual add
-function handleManualAdd() {
+async function handleManualAdd() {
   const callsign = manualCallInput.value.trim().toUpperCase();
   if (!callsign) {
     showStatus('Please enter a callsign', 'error');
@@ -251,13 +251,26 @@ function handleManualAdd() {
     showStatus(`${callsign} is already in the list`, 'error');
     return;
   }
-  addResult({
-    callsign,
-    name: manualNameInput.value.trim(),
-    address: manualAddressInput.value.trim(),
-    lat: null,
-    lon: null,
-  });
+
+  const address = manualAddressInput.value.trim();
+  let lat = null, lon = null;
+
+  if (address) {
+    showStatus(`Geocoding address for ${callsign}...`, '');
+    manualAddBtn.disabled = true;
+    try {
+      const coords = await geocodeAddress(address);
+      if (coords) {
+        lat = coords.lat;
+        lon = coords.lon;
+      }
+    } catch (e) {
+      // proceed without coords
+    }
+    manualAddBtn.disabled = false;
+  }
+
+  addResult({ callsign, name: manualNameInput.value.trim(), address, lat, lon });
   manualCallInput.value = '';
   manualNameInput.value = '';
   manualAddressInput.value = '';
