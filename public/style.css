@@ -183,8 +183,8 @@ main {
 
 #manual-add-btn {
   padding: 0.5rem 1rem;
-  background: #27ae60;
-  color: white;
+  background: #f1c40f;
+  color: #333;
   border: none;
   border-radius: 4px;
   font-size: 0.9rem;
@@ -193,7 +193,7 @@ main {
 }
 
 #manual-add-btn:hover {
-  background: #219a52;
+  background: #d4ac0d;
 }
 
 #status-message.error {
