@@ -58,10 +58,7 @@ filterInput.addEventListener('input', (e) => {
 });
 
 // Distance from input
-distanceFromInput.addEventListener('blur', handleDistanceFromChange);
-distanceFromInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') { e.preventDefault(); handleDistanceFromChange(); }
-});
+distanceFromInput.addEventListener('input', handleDistanceFromChange);
 
 // Menu event listeners
 menuReset.addEventListener('click', (e) => {
@@ -432,50 +429,13 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 }
 
 // Handle distance-from callsign input change
-async function handleDistanceFromChange() {
+function handleDistanceFromChange() {
   const callsign = distanceFromInput.value.trim().toUpperCase();
-  distanceFromInput.value = callsign;
   distanceFromCallsign = callsign;
 
-  if (!callsign) {
-    distanceFromCoords = null;
-    renderTable();
-    return;
-  }
+  const match = callsign ? results.find(r => r.callsign === callsign && r.lat && r.lon) : null;
+  distanceFromCoords = match ? { lat: match.lat, lon: match.lon } : null;
 
-  // Check results array first
-  const inResults = results.find(r => r.callsign === callsign && r.lat && r.lon);
-  if (inResults) {
-    distanceFromCoords = { lat: inResults.lat, lon: inResults.lon };
-    renderTable();
-    return;
-  }
-
-  // Check cache
-  const cached = getCachedCallsign(callsign);
-  if (cached && cached.lat && cached.lon) {
-    distanceFromCoords = { lat: cached.lat, lon: cached.lon };
-    renderTable();
-    return;
-  }
-
-  // Lookup via API
-  try {
-    const response = await fetch('/api/lookup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ callsign })
-    });
-    const data = await response.json();
-    if (response.ok && data.lat && data.lon) {
-      cacheCallsign(callsign, data);
-      distanceFromCoords = { lat: data.lat, lon: data.lon };
-    } else {
-      distanceFromCoords = null;
-    }
-  } catch (e) {
-    distanceFromCoords = null;
-  }
   renderTable();
 }
 
