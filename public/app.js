@@ -10,6 +10,8 @@ let markers = {};
 let sortColumn = null;
 let sortDirection = 'asc';
 let filterText = '';
+let distanceFromCallsign = '';
+let distanceFromCoords = null;
 
 // DOM Elements
 const callsignInput = document.getElementById('callsign-input');
@@ -19,6 +21,8 @@ const resultsTable = document.getElementById('results-table');
 const resultsBody = document.getElementById('results-body');
 const emptyMessage = document.getElementById('empty-message');
 const filterInput = document.getElementById('filter-input');
+const distanceFromInput = document.getElementById('distance-from-input');
+const distanceHeader = document.getElementById('distance-header');
 
 // Menu elements
 const menuReset = document.getElementById('menu-reset');
@@ -51,6 +55,12 @@ document.querySelectorAll('th[data-sort]').forEach(th => {
 filterInput.addEventListener('input', (e) => {
   filterText = e.target.value.toLowerCase();
   renderTable();
+});
+
+// Distance from input
+distanceFromInput.addEventListener('blur', handleDistanceFromChange);
+distanceFromInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); handleDistanceFromChange(); }
 });
 
 // Menu event listeners
@@ -273,11 +283,17 @@ function getSortedResults() {
   if (!sortColumn) return filtered;
 
   return [...filtered].sort((a, b) => {
-    let valA = a[sortColumn] || '';
-    let valB = b[sortColumn] || '';
+    let valA, valB;
 
-    if (typeof valA === 'string') valA = valA.toLowerCase();
-    if (typeof valB === 'string') valB = valB.toLowerCase();
+    if (sortColumn === 'distance' && distanceFromCoords) {
+      valA = (a.lat && a.lon) ? haversineDistance(a.lat, a.lon, distanceFromCoords.lat, distanceFromCoords.lon) : Infinity;
+      valB = (b.lat && b.lon) ? haversineDistance(b.lat, b.lon, distanceFromCoords.lat, distanceFromCoords.lon) : Infinity;
+    } else {
+      valA = a[sortColumn] || '';
+      valB = b[sortColumn] || '';
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+    }
 
     if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
     if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
@@ -300,6 +316,8 @@ function updateSortIndicators() {
 function renderTable() {
   resultsBody.innerHTML = '';
 
+  distanceHeader.classList.toggle('hidden', !distanceFromCoords);
+
   if (results.length === 0) {
     resultsTable.classList.remove('has-data');
     emptyMessage.classList.remove('hidden');
@@ -315,10 +333,15 @@ function renderTable() {
     const row = document.createElement('tr');
     row.dataset.callsign = result.callsign;
 
+    const distanceTd = distanceFromCoords
+      ? `<td class="distance-cell">${result.lat && result.lon ? haversineDistance(result.lat, result.lon, distanceFromCoords.lat, distanceFromCoords.lon).toFixed(1) + ' mi' : '—'}</td>`
+      : '';
+
     row.innerHTML = `
       <td class="callsign-cell">${escapeHtml(result.callsign)}</td>
       <td contenteditable="true" data-field="name">${escapeHtml(result.name)}</td>
       <td contenteditable="true" data-field="address">${escapeHtml(result.address)}</td>
+      ${distanceTd}
       <td><button class="delete-btn" data-callsign="${escapeHtml(result.callsign)}">Delete</button></td>
     `;
 
@@ -396,6 +419,64 @@ async function geocodeAddress(address) {
   }
 
   return null;
+}
+
+// Haversine distance between two lat/lon points, in miles
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 3958.8;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Handle distance-from callsign input change
+async function handleDistanceFromChange() {
+  const callsign = distanceFromInput.value.trim().toUpperCase();
+  distanceFromInput.value = callsign;
+  distanceFromCallsign = callsign;
+
+  if (!callsign) {
+    distanceFromCoords = null;
+    renderTable();
+    return;
+  }
+
+  // Check results array first
+  const inResults = results.find(r => r.callsign === callsign && r.lat && r.lon);
+  if (inResults) {
+    distanceFromCoords = { lat: inResults.lat, lon: inResults.lon };
+    renderTable();
+    return;
+  }
+
+  // Check cache
+  const cached = getCachedCallsign(callsign);
+  if (cached && cached.lat && cached.lon) {
+    distanceFromCoords = { lat: cached.lat, lon: cached.lon };
+    renderTable();
+    return;
+  }
+
+  // Lookup via API
+  try {
+    const response = await fetch('/api/lookup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ callsign })
+    });
+    const data = await response.json();
+    if (response.ok && data.lat && data.lon) {
+      cacheCallsign(callsign, data);
+      distanceFromCoords = { lat: data.lat, lon: data.lon };
+    } else {
+      distanceFromCoords = null;
+    }
+  } catch (e) {
+    distanceFromCoords = null;
+  }
+  renderTable();
 }
 
 // Update map markers

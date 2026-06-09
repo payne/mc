@@ -188,17 +188,32 @@ main {
   color: #333;
 }
 
-#filter-input {
+.hidden {
+  display: none !important;
+}
+
+#filter-input,
+#distance-from-input {
   padding: 0.5rem 0.75rem;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 0.9rem;
-  width: 200px;
+  width: 160px;
 }
 
-#filter-input:focus {
+#filter-input:focus,
+#distance-from-input:focus {
   outline: none;
   border-color: #3498db;
+}
+
+#distance-from-input {
+  text-transform: uppercase;
+}
+
+.distance-cell {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 #results-table {

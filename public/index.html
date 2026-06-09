@@ -61,6 +61,7 @@
         <div class="table-header">
           <h2>Callsign Results</h2>
           <input type="text" id="filter-input" placeholder="Filter..." />
+          <input type="text" id="distance-from-input" placeholder="Distance from..." />
         </div>
         <table id="results-table">
           <thead>
@@ -68,6 +69,7 @@
               <th data-sort="callsign" class="sortable">Callsign</th>
               <th data-sort="name" class="sortable">Name</th>
               <th data-sort="address" class="sortable">Address</th>
+              <th id="distance-header" data-sort="distance" class="sortable hidden">Distance</th>
               <th>Actions</th>
             </tr>
           </thead>
