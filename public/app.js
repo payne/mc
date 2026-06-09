@@ -23,6 +23,10 @@ const emptyMessage = document.getElementById('empty-message');
 const filterInput = document.getElementById('filter-input');
 const distanceFromInput = document.getElementById('distance-from-input');
 const distanceHeader = document.getElementById('distance-header');
+const manualCallInput = document.getElementById('manual-call');
+const manualNameInput = document.getElementById('manual-name');
+const manualAddressInput = document.getElementById('manual-address');
+const manualAddBtn = document.getElementById('manual-add-btn');
 
 // Menu elements
 const menuReset = document.getElementById('menu-reset');
@@ -59,6 +63,9 @@ filterInput.addEventListener('input', (e) => {
 
 // Distance from input
 distanceFromInput.addEventListener('input', handleDistanceFromChange);
+
+// Manual add button
+manualAddBtn.addEventListener('click', handleManualAdd);
 
 // Menu event listeners
 menuReset.addEventListener('click', (e) => {
@@ -231,6 +238,30 @@ async function handleLookup() {
   showStatus(message, statusType);
   callsignInput.value = '';
   lookupBtn.disabled = false;
+}
+
+// Handle manual add
+function handleManualAdd() {
+  const callsign = manualCallInput.value.trim().toUpperCase();
+  if (!callsign) {
+    showStatus('Please enter a callsign', 'error');
+    return;
+  }
+  if (results.some(r => r.callsign === callsign)) {
+    showStatus(`${callsign} is already in the list`, 'error');
+    return;
+  }
+  addResult({
+    callsign,
+    name: manualNameInput.value.trim(),
+    address: manualAddressInput.value.trim(),
+    lat: null,
+    lon: null,
+  });
+  manualCallInput.value = '';
+  manualNameInput.value = '';
+  manualAddressInput.value = '';
+  showStatus(`Added ${callsign}`, 'success');
 }
 
 // Add result to table (at top)

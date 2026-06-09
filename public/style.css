@@ -147,6 +147,55 @@ main {
   color: #666;
 }
 
+.manual-add-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.manual-add-row input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.manual-add-row input:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+#manual-call {
+  width: 100px;
+  text-transform: uppercase;
+}
+
+#manual-name {
+  flex: 1;
+  min-width: 120px;
+}
+
+#manual-address {
+  flex: 2;
+  min-width: 160px;
+}
+
+#manual-add-btn {
+  padding: 0.5rem 1rem;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#manual-add-btn:hover {
+  background: #219a52;
+}
+
 #status-message.error {
   color: #e74c3c;
 }
